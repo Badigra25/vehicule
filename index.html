@@ -224,28 +224,47 @@
                 const response = await fetch(`${SCRIPT_URL}?driverId=${encodeURIComponent(entryId)}`);
                 const data = await response.json();
 
-                if (data && Object.keys(data).length > 0) {
+                if (data && data.status !== 'error') {
                     startSection.style.display = 'none';
                     formSection.style.display = 'block';
                     generatedId.value = data["Id enregistrement"] || entryId;
+
                     const fieldMap = {
-                        "Immatriculation": "vehicleReg", "Marque / Modèle": "vehicleModel",
-                        "Nom du conducteur": "driverName", "Matricule du conducteur": "driverMat",
-                        "Date départ": "dateStart", "Heure départ": "timeStart",
-                        "Date retour": "dateEnd", "Heure retour": "timeEnd",
-                        "Départ (site/adresse)": "origin", "Destination (site/adresse)": "destination",
-                        "Motif / Mission": "mission", "Kilométrage départ": "kmDepart",
-                        "Kilométrage retour": "kmRetour", "Km parcourus": "kmParcourus",
-                        "Péages / Frais": "toll", "Nombre passagers": "passengers",
+                        "Immatriculation": "vehicleReg",
+                        "Marque / Modèle": "vehicleModel",
+                        "Nom du conducteur": "driverName",
+                        "Matricule du conducteur": "driverMat",
+                        "Date départ": "dateStart",
+                        "Heure départ": "timeStart",
+                        "Date retour": "dateEnd",
+                        "Heure retour": "timeEnd",
+                        "Départ (site/adresse)": "origin",
+                        "Destination (site/adresse)": "destination",
+                        "Motif / Mission": "mission",
+                        "Kilométrage départ": "kmDepart",
+                        "Kilométrage retour": "kmRetour",
+                        "Km parcourus": "kmParcourus",
+                        "Péages / Frais": "toll",
+                        "Nombre passagers": "passengers",
                         "État du véhicule après utilisation": "vehicleState",
-                        "Nom & Signature Conducteur": "signDriver", "Nom & Signature Responsable": "signResp"
+                        "Nom & Signature Conducteur": "signDriver",
+                        "Nom & Signature Responsable": "signResp"
                     };
 
                     for (const sheetKey in fieldMap) {
                         const elementId = fieldMap[sheetKey];
                         const element = document.getElementById(elementId);
                         if (element && data[sheetKey] !== undefined && data[sheetKey] !== null) {
-                            element.value = data[sheetKey];
+                            if (element.tagName === 'SELECT') {
+                                for (let i = 0; i < element.options.length; i++) {
+                                    if (element.options[i].text === data[sheetKey] || element.options[i].value === data[sheetKey]) {
+                                        element.selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                            } else {
+                                element.value = data[sheetKey];
+                            }
                         }
                     }
                     calculateKm();
@@ -294,7 +313,8 @@
 
             const id = generatedId.value || generateID();
             const data = {
-                "Id enregistrement": id, "Immatriculation": vehicleRegInput.value,
+                "Id enregistrement": id,
+                "Immatriculation": vehicleRegInput.value,
                 "Marque / Modèle": vehicleModelSelect.options[vehicleModelSelect.selectedIndex].text,
                 "Nom du conducteur": document.getElementById('driverName').value,
                 "Matricule du conducteur": document.getElementById('driverMat').value,
@@ -414,5 +434,4 @@
     })();
 </script>
 </body>
-
 </html>
