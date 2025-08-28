@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Suivi Véhicules — DMS</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        body { font-family: "Segoe UI", sans-serif; background: linear-gradient(135deg, #eef2f7, #d9e2ec); margin: 0; padding: 0; }
+        .container { max-width: 900px; margin: auto; padding: 40px; }
+        .logo { width: 100px; height: 100px; background: url('logo.png') no-repeat center/contain; margin: auto; border-radius: 12px; }
+        h1 { text-align: center; color: #334E68; margin-bottom: 25px; }
+        input, select, textarea, button { font-size: 15px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; margin-bottom: 15px; }
+        input:focus, select:focus, textarea:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+        button { background: #3b82f6; color: #fff; border: none; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #2563eb; }
+        .form-section { background: #fff; padding: 30px; margin-top: 20px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 25px; }
+        .section-title { font-size: 18px; font-weight: 600; color: #3b82f6; margin: 25px 0 15px; display:flex; align-items:center; gap:8px; }
+        textarea { resize: vertical; min-height: 80px; }
+        label { color: #007bff; font-weight: 600; }
+        .error { color: red; text-align:center; margin-top:10px; }
+        .submit-btn, .back-btn { margin-top:20px; padding:12px; font-size:16px; }
+        .back-btn { background:#6b7280; }
+        .back-btn:hover { background:#4b5563; }
+        #loginSection, #startSection, #formSection { display:none; }
+        #loginSection { display:block; }
+        .password-container { position:relative; width:100%; margin-bottom:15px; }
+        .password-container input { width:100%; padding-right:40px; }
+        .password-container .toggle-password { position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; color:#666; font-size:18px; user-select:none; }
+
+        @media print {
+            body { background:none; margin:0; padding:0; }
+            .container { padding:0; max-width:100%; margin:0; }
+            .form-section { box-shadow:none; padding:0; margin:0; background:#fff; }
+            .grid-2, .grid-3 { display:block; gap:0; }
+            .form-group { margin-bottom:5px; display:flex; align-items:baseline; }
+            label { color:#000; font-size:12px; font-weight:bold; margin-right:10px; flex-basis:30%; }
+            input, select, textarea { border:none; border-bottom:1px solid #000; padding:2px; font-size:12px; flex-grow:1; }
+            input[type="date"], input[type="time"] { border:none; }
+            .submit-btn, .back-btn, .logo, .error, .fa-car, .fa-user, .fa-tachometer-alt, .fa-car-side, .toggle-password { display:none; }
+            #loginSection, #startSection { display:none !important; }
+            #formSection { display:block !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div id="loginSection" class="form-section">
+        <div class="logo" aria-hidden="true"></div>
+        <h1>Connexion DMS Véhicule 2025</h1>
+        <div>
+            <label for="loginUser">Identifiant</label>
+            <input type="text" id="loginUser" autocomplete="username">
+        </div>
+        <div class="password-container">
+            <label for="loginPass">Mot de passe</label>
+            <input type="password" id="loginPass" autocomplete="current-password">
+            <i class="fas fa-eye-slash toggle-password" title="Afficher / masquer le mot de passe" role="button" aria-label="Afficher ou masquer le mot de passe"></i>
+        </div>
+        <button type="button" id="loginBtn">Se connecter</button>
+        <p id="loginError" class="error" style="display:none;">Identifiant ou mot de passe incorrect</p>
+    </div>
+
+    <div id="startSection" class="form-section">
+        <h1>Suivi d’Utilisation des Véhicules DMS</h1>
+        <button type="button" id="newEntryBtn">Nouvel enregistrement</button>
+        <div>
+            <label for="existingId">Déjà enregistré ? Entrez votre ID :</label>
+            <input type="text" id="existingId">
+            <button type="button" id="existingBtn">Accéder</button>
+        </div>
+    </div>
+
+    <div id="formSection" class="form-section">
+        <h1>Formulaire Suivi Véhicule</h1>
+        <div class="form-group">
+            <label for="generatedId">ID Enregistrement</label>
+            <input type="text" id="generatedId" readonly>
+        </div>
+
+        <div class="section-title">Informations Véhicule</div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label for="vehicleModel">Marque / Modèle *</label>
+                <select id="vehicleModel" required>
+                    <option value="">-- Sélectionner --</option>
+                    <option value="8732HY01">DUSTER</option>
+                    <option value="9593HZ01">SANDERO</option>
+                    <option value="3527HV01">CITROEN</option>
+                    <option value="6953HZ01">PEUGEOT</option>
+                    <option value="AA196LE">JAC</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="vehicleReg">Immatriculation </label>
+                <input type="text" id="vehicleReg" required>
+            </div>
+        </div>
+
+        <div class="section-title">Conducteur & Mission</div>
+        <div class="grid-2">
+            <div class="form-group"><label for="driverName">Nom du conducteur </label><input type="text" id="driverName" required></div>
+            <div class="form-group"><label for="driverMat">Matricule du conducteur</label><input type="text" id="driverMat"></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label for="dateStart">Date départ </label><input type="date" id="dateStart" required></div>
+            <div class="form-group"><label for="timeStart">Heure départ </label><input type="time" id="timeStart" required></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label for="dateEnd">Date retour</label><input type="date" id="dateEnd"></div>
+            <div class="form-group"><label for="timeEnd">Heure retour</label><input type="time" id="timeEnd"></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label for="origin">Départ (site/adresse)</label><input type="text" id="origin"></div>
+            <div class="form-group"><label for="destination">Destination (site/adresse)</label><input type="text" id="destination"></div>
+        </div>
+        <div class="form-group"><label for="mission">Motif / Mission </label><textarea id="mission" required></textarea></div>
+
+        <div class="section-title">Kilométrage & Carburant</div>
+        <div class="grid-3">
+            <div class="form-group"><label for="kmDepart">Kilométrage départ </label><input type="number" id="kmDepart" required></div>
+            <div class="form-group"><label for="kmRetour">Kilométrage retour</label><input type="number" id="kmRetour"></div>
+            <div class="form-group"><label for="kmParcourus">Km parcourus</label><input type="number" id="kmParcourus" readonly></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label for="toll">Péages / Frais</label><input type="text" id="toll"></div>
+            <div class="form-group"><label for="passengers">Nombre passagers</label><input type="number" id="passengers"></div>
+        </div>
+
+        <div class="form-group"><label for="vehicleState">État du véhicule après utilisation</label><textarea id="vehicleState"></textarea></div>
+        <div class="form-group"><label for="vehiclePhotos">Photos / pièces jointes</label><input type="file" id="vehiclePhotos" multiple accept="image/*,.pdf"></div>
+
+        <div class="grid-2">
+            <div class="form-group"><label for="signDriver">Nom & Signature Conducteur</label><input type="text" id="signDriver"></div>
+            <div class="form-group"><label for="signResp">Nom & Signature Responsable</label><input type="text" id="signResp"></div>
+        </div>
+
+        <button type="button" class="submit-btn" id="saveFormBtn" style="background-color: #28a745;">Enregistrer</button>
+        <button type="button" class="submit-btn" id="exportPdfBtn">Exporter en PDF</button>
+        <button type="button" class="back-btn" id="backBtn">Retour</button>
+    </div>
+</div>
+
+<script>
+    (function(){
+        'use strict';
+
+        // ⚠️ METS ICI L’URL DE TON PROPRE Apps Script déployé (Web App) ⚠️
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5wVV2zag3WiYl8QCPd4Vb1s4_DxrWvlubdWKZo5Vu5j0767AE-TfN8PtXXNpBNSQt/exec';
+
+        // -- SÉLECTION DES ÉLÉMENTS DU DOM --
+        const loginBtn = document.getElementById('loginBtn');
+        const loginUser = document.getElementById('loginUser');
+        const loginPass = document.getElementById('loginPass');
+        const loginError = document.getElementById('loginError');
+        const startSection = document.getElementById('startSection');
+        const loginSection = document.getElementById('loginSection');
+        const togglePassword = document.querySelector('.toggle-password');
+        const newEntryBtn = document.getElementById('newEntryBtn');
+        const existingBtn = document.getElementById('existingBtn');
+        const existingId = document.getElementById('existingId');
+        const formSection = document.getElementById('formSection');
+        const generatedId = document.getElementById('generatedId');
+        const backBtn = document.getElementById('backBtn');
+        const kmDepart = document.getElementById('kmDepart');
+        const kmRetour = document.getElementById('kmRetour');
+        const kmParcourus = document.getElementById('kmParcourus');
+        const tollInput = document.getElementById('toll');
+        const vehicleModelSelect = document.getElementById('vehicleModel');
+        const vehicleRegInput = document.getElementById('vehicleReg');
+        const saveFormBtn = document.getElementById('saveFormBtn');
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
+
+        // -- FONCTIONS UTILS --
+        function generateID() { return Math.floor(100000 + Math.random() * 900000).toString(); }
+        function calculateKm() {
+            const d = parseFloat(kmDepart.value) || 0;
+            const r = parseFloat(kmRetour.value) || 0;
+            if (r >= d && r > 0 && d > 0) {
+                kmParcourus.value = (r - d);
+            } else {
+                kmParcourus.value = '';
+            }
+        }
+
+        // -- EVENTS --
+        loginBtn.addEventListener('click', () => {
+            const user = loginUser.value.trim().toUpperCase();
+            const pass = loginPass.value.trim();
+            if (user === 'DMS VEHICULE 2025' && pass === 'VEHICULE2025@') {
+                loginSection.style.display = 'none';
+                startSection.style.display = 'block';
+                loginError.style.display = 'none';
+            } else {
+                loginError.style.display = 'block';
+            }
+        });
+
+        togglePassword.addEventListener('click', () => {
+            const type = loginPass.getAttribute('type') === 'password' ? 'text' : 'password';
+            loginPass.setAttribute('type', type);
+            togglePassword.classList.toggle('fa-eye');
+            togglePassword.classList.toggle('fa-eye-slash');
+        });
+
+        newEntryBtn.addEventListener('click', () => {
+            startSection.style.display = 'none';
+            formSection.style.display = 'block';
+            generatedId.value = generateID();
+            document.getElementById('mission').value = '';
+        });
+
+        existingBtn.addEventListener('click', async () => {
+            const entryId = existingId.value.trim();
+            if (entryId === '') {
+                alert("Veuillez entrer un ID d'enregistrement.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?driverId=${encodeURIComponent(entryId)}`);
+                const data = await response.json();
+
+                if (data && Object.keys(data).length > 0) {
+                    startSection.style.display = 'none';
+                    formSection.style.display = 'block';
+                    generatedId.value = data["Id enregistrement"] || entryId;
+                    const fieldMap = {
+                        "Immatriculation": "vehicleReg", "Marque / Modèle": "vehicleModel",
+                        "Nom du conducteur": "driverName", "Matricule du conducteur": "driverMat",
+                        "Date départ": "dateStart", "Heure départ": "timeStart",
+                        "Date retour": "dateEnd", "Heure retour": "timeEnd",
+                        "Départ (site/adresse)": "origin", "Destination (site/adresse)": "destination",
+                        "Motif / Mission": "mission", "Kilométrage départ": "kmDepart",
+                        "Kilométrage retour": "kmRetour", "Km parcourus": "kmParcourus",
+                        "Péages / Frais": "toll", "Nombre passagers": "passengers",
+                        "État du véhicule après utilisation": "vehicleState",
+                        "Nom & Signature Conducteur": "signDriver", "Nom & Signature Responsable": "signResp"
+                    };
+
+                    for (const sheetKey in fieldMap) {
+                        const elementId = fieldMap[sheetKey];
+                        const element = document.getElementById(elementId);
+                        if (element && data[sheetKey] !== undefined && data[sheetKey] !== null) {
+                            element.value = data[sheetKey];
+                        }
+                    }
+                    calculateKm();
+                } else {
+                    alert("❌ Aucun enregistrement trouvé pour l'ID saisi.");
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données:', error);
+                alert("❌ Une erreur s'est produite. Vérifiez votre connexion ou l'ID.");
+            }
+        });
+
+        backBtn.addEventListener('click', () => {
+            formSection.style.display = 'none';
+            startSection.style.display = 'block';
+        });
+
+        kmDepart.addEventListener('input', calculateKm);
+        kmRetour.addEventListener('input', calculateKm);
+
+        tollInput.addEventListener('input', function() {
+            let val = this.value.replace(/\s*CFA/gi, '').trim();
+            const numeric = val.replace(/,/g,'.').replace(/[^\d.]/g,'');
+            if (numeric !== '') {
+                this.value = numeric + ' CFA';
+            } else {
+                this.value = val;
+            }
+        });
+
+        vehicleModelSelect.addEventListener('change', () => {
+            vehicleRegInput.value = vehicleModelSelect.value;
+        });
+
+        saveFormBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            calculateKm();
+
+            const requiredFields = ['vehicleModel', 'driverName', 'dateStart', 'timeStart', 'kmDepart', 'mission'];
+            for (let fieldId of requiredFields) {
+                if (!document.getElementById(fieldId).value) {
+                    alert("Veuillez remplir tous les champs obligatoires (marqués d'un *).");
+                    return;
+                }
+            }
+
+            const id = generatedId.value || generateID();
+            const data = {
+                "Id enregistrement": id, "Immatriculation": vehicleRegInput.value,
+                "Marque / Modèle": vehicleModelSelect.options[vehicleModelSelect.selectedIndex].text,
+                "Nom du conducteur": document.getElementById('driverName').value,
+                "Matricule du conducteur": document.getElementById('driverMat').value,
+                "Date départ": document.getElementById('dateStart').value,
+                "Heure départ": document.getElementById('timeStart').value,
+                "Date retour": document.getElementById('dateEnd').value,
+                "Heure retour": document.getElementById('timeEnd').value,
+                "Départ (site/adresse)": document.getElementById('origin').value,
+                "Destination (site/adresse)": document.getElementById('destination').value,
+                "Motif / Mission": document.getElementById('mission').value,
+                "Kilométrage départ": kmDepart.value,
+                "Kilométrage retour": kmRetour.value,
+                "Km parcourus": kmParcourus.value,
+                "Péages / Frais": tollInput.value,
+                "Nombre passagers": document.getElementById('passengers').value,
+                "État du véhicule après utilisation": document.getElementById('vehicleState').value,
+                "Nom & Signature Conducteur": document.getElementById('signDriver').value,
+                "Nom & Signature Responsable": document.getElementById('signResp').value
+            };
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.status === 'ok') {
+                    generatedId.value = id;
+                    alert("✅ Enregistrement effectué (ID: " + id + ")");
+                } else {
+                    console.error('Erreur du serveur:', result.message);
+                    alert("❌ Erreur lors de l'enregistrement: " + result.message);
+                }
+
+            } catch (error) {
+                console.error('Erreur lors de l\'envoi des données:', error);
+                alert("❌ Une erreur s'est produite lors de l'enregistrement. Veuillez vérifier votre connexion.");
+            }
+        });
+
+        exportPdfBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            calculateKm();
+            const fields = [
+                {id:'generatedId', label:'ID Enregistrement'},
+                {id:'vehicleReg', label:'Immatriculation'},
+                {id:'vehicleModel', label:'Marque / Modèle'},
+                {id:'driverName', label:'Nom du conducteur'},
+                {id:'driverMat', label:'Matricule'},
+                {id:'dateStart', label:'Date départ'},
+                {id:'timeStart', label:'Heure départ'},
+                {id:'dateEnd', label:'Date retour'},
+                {id:'timeEnd', label:'Heure retour'},
+                {id:'origin', label:'Départ (site/adresse)'},
+                {id:'destination', label:'Destination (site/adresse)'},
+                {id:'mission', label:'Motif / Mission'},
+                {id:'kmDepart', label:'Kilométrage départ'},
+                {id:'kmRetour', label:'Kilométrage retour'},
+                {id:'kmParcourus', label:'Km parcourus'},
+                {id:'toll', label:'Péages / Frais'},
+                {id:'passengers', label:'Nombre passagers'},
+                {id:'vehicleState', label:"État du véhicule après utilisation"},
+                {id:'signDriver', label:'Nom & Signature Conducteur'},
+                {id:'signResp', label:'Nom & Signature Responsable'}
+            ];
+            let html = `<!doctype html><html><head><meta charset="utf-8"><title>Suivi Véhicule ${document.getElementById('generatedId').value || ''}</title>`;
+            html += `<style>
+                @page { size: A4; margin: 10mm; }
+                html,body{font-family: Arial, sans-serif; margin:10px; color:#111; font-size:12px}
+                h1{font-size:16px; margin-bottom:6px}
+                table{width:100%; border-collapse:collapse; margin-top:8px; font-size:12px}
+                td, th{padding:6px; border:1px solid #ddd; vertical-align:top}
+                .label{width:35%; font-weight:bold; background:#f4f4f4}
+                table, tr, td { page-break-inside: avoid; }
+            </style></head><body>`;
+            html += `<h1>Suivi Véhicule — DMS</h1><table>`;
+            fields.forEach(f => {
+                const el = document.getElementById(f.id);
+                let val = '';
+                if (el) {
+                    if (el.tagName === 'SELECT') {
+                        val = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value;
+                    } else if (el.type === 'file') {
+                        const files = el.files;
+                        if (files && files.length) {
+                            val = Array.from(files).map(fi => fi.name).join(', ');
+                        } else {
+                            val = '';
+                        }
+                    } else {
+                        val = el.value || '';
+                    }
+                }
+                val = String(val).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+                html += `<tr><td class="label">${f.label}</td><td>${val}</td></tr>`;
+            });
+            html += `</table></body></html>`;
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('Le navigateur a bloqué l’ouverture d’une nouvelle fenêtre. Autorisez les pop-ups pour ce site.');
+                return;
+            }
+            printWindow.document.open();
+            printWindow.document.write(html);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.onload = function() { setTimeout(()=>printWindow.print(), 200); };
+        });
+    })();
+</script>
+</body>
+</html>
