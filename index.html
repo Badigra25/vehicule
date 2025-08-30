@@ -145,296 +145,123 @@
 </div>
 
 <script>
-    (function(){
-        'use strict';
+(function(){
+    'use strict';
 
-        // ⚠️ METS ICI L’URL DE TON PROPRE Apps Script déployé (Web App) ⚠️
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3CXf5E-1-IWSH7kUsHbih84fqRLvy1rqdSnwQ1Bn1eTqcz5X3UYkwfTjB85prumn-/exec';
+    // ⚠️ URL DE TON SERVEUR NODE.JS LOCAL
+    const SERVER_URL = 'http://localhost:3000/api/data';
 
-        // -- SÉLECTION DES ÉLÉMENTS DU DOM --
-        const loginBtn = document.getElementById('loginBtn');
-        const loginUser = document.getElementById('loginUser');
-        const loginPass = document.getElementById('loginPass');
-        const loginError = document.getElementById('loginError');
-        const startSection = document.getElementById('startSection');
-        const loginSection = document.getElementById('loginSection');
-        const togglePassword = document.querySelector('.toggle-password');
-        const newEntryBtn = document.getElementById('newEntryBtn');
-        const existingBtn = document.getElementById('existingBtn');
-        const existingId = document.getElementById('existingId');
-        const formSection = document.getElementById('formSection');
-        const generatedId = document.getElementById('generatedId');
-        const backBtn = document.getElementById('backBtn');
-        const kmDepart = document.getElementById('kmDepart');
-        const kmRetour = document.getElementById('kmRetour');
-        const kmParcourus = document.getElementById('kmParcourus');
-        const tollInput = document.getElementById('toll');
-        const vehicleModelSelect = document.getElementById('vehicleModel');
-        const vehicleRegInput = document.getElementById('vehicleReg');
-        const saveFormBtn = document.getElementById('saveFormBtn');
-        const exportPdfBtn = document.getElementById('exportPdfBtn');
+    // DOM Elements
+    const loginBtn = document.getElementById('loginBtn');
+    const loginUser = document.getElementById('loginUser');
+    const loginPass = document.getElementById('loginPass');
+    const loginError = document.getElementById('loginError');
+    const startSection = document.getElementById('startSection');
+    const loginSection = document.getElementById('loginSection');
+    const togglePassword = document.querySelector('.toggle-password');
+    const newEntryBtn = document.getElementById('newEntryBtn');
+    const existingBtn = document.getElementById('existingBtn');
+    const existingId = document.getElementById('existingId');
+    const formSection = document.getElementById('formSection');
+    const generatedId = document.getElementById('generatedId');
+    const backBtn = document.getElementById('backBtn');
+    const kmDepart = document.getElementById('kmDepart');
+    const kmRetour = document.getElementById('kmRetour');
+    const kmParcourus = document.getElementById('kmParcourus');
+    const tollInput = document.getElementById('toll');
+    const vehicleModelSelect = document.getElementById('vehicleModel');
+    const vehicleRegInput = document.getElementById('vehicleReg');
+    const saveFormBtn = document.getElementById('saveFormBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
 
-        // -- FONCTIONS UTILS --
-        function generateID() { return Math.floor(100000 + Math.random() * 900000).toString(); }
-        function calculateKm() {
-            const d = parseFloat(kmDepart.value) || 0;
-            const r = parseFloat(kmRetour.value) || 0;
-            if (r >= d && r > 0 && d > 0) {
-                kmParcourus.value = (r - d);
-            } else {
-                kmParcourus.value = '';
-            }
+    function generateID() { return Math.floor(100000 + Math.random() * 900000).toString(); }
+    function calculateKm() {
+        const d = parseFloat(kmDepart.value) || 0;
+        const r = parseFloat(kmRetour.value) || 0;
+        kmParcourus.value = (r >= d && r>0 && d>0) ? (r-d) : '';
+    }
+
+    loginBtn.addEventListener('click', () => {
+        const user = loginUser.value.trim().toUpperCase();
+        const pass = loginPass.value.trim();
+        if(user==='DMS VEHICULE 2025' && pass==='VEHICULE2025@'){
+            loginSection.style.display='none';
+            startSection.style.display='block';
+            loginError.style.display='none';
+        } else loginError.style.display='block';
+    });
+
+    togglePassword.addEventListener('click', ()=>{
+        const type = loginPass.type==='password'?'text':'password';
+        loginPass.type = type;
+        togglePassword.classList.toggle('fa-eye');
+        togglePassword.classList.toggle('fa-eye-slash');
+    });
+
+    newEntryBtn.addEventListener('click', ()=>{
+        startSection.style.display='none';
+        formSection.style.display='block';
+        generatedId.value = generateID();
+    });
+
+    backBtn.addEventListener('click', ()=>{
+        formSection.style.display='none';
+        startSection.style.display='block';
+    });
+
+    kmDepart.addEventListener('input', calculateKm);
+    kmRetour.addEventListener('input', calculateKm);
+
+    // 🔹 Récupération d'un enregistrement existant
+    existingBtn.addEventListener('click', async () => {
+        const id = existingId.value.trim();
+        if(!id) return alert('Veuillez saisir un ID');
+
+        try {
+            const res = await fetch(SERVER_URL);
+            const data = await res.json();
+            const record = data.find(r => r["Id enregistrement"]===id);
+            if(!record) return alert('ID non trouvé');
+            // remplir le formulaire
+            generatedId.value = record["Id enregistrement"];
+            vehicleModelSelect.value = record["Marque / Modèle"];
+            vehicleRegInput.value = record["Immatriculation"];
+            document.getElementById('driverName').value = record["Nom du conducteur"];
+            document.getElementById('dateStart').value = record["Date départ"];
+            document.getElementById('timeStart').value = record["Heure départ"];
+            document.getElementById('dateEnd').value = record["Date retour"];
+            document.getElementById('timeEnd').value = record["Heure retour"];
+            document.getElementById('origin').value = record["Départ (site/adresse)"];
+            document.getElementById('destination').value = record["Destination (site/adresse)"];
+            document.getElementById('mission').value = record["Motif / Mission"];
+            document.getElementById('kmDepart').value = record["Kilométrage départ"];
+            document.getElementById('kmRetour').value = record["Kilométrage retour"];
+            document.getElementById('kmParcourus').value = record["Km parcourus"];
+            document.getElementById('toll').value = record["Péages / Frais"];
+            document.getElementById('passengers').value = record["Nombre passagers"];
+            document.getElementById('vehicleState').value = record["État du véhicule après utilisation"];
+            document.getElementById('signDriver').value = record["Nom & Signature Conducteur"];
+            document.getElementById('signResp').value = record["Nom & Signature Responsable"];
+
+            startSection.style.display='none';
+            formSection.style.display='block';
+        } catch(err){
+            console.error(err);
+            alert('Erreur lors de la récupération des données');
         }
+    });
 
-        // -- EVENTS --
-        loginBtn.addEventListener('click', () => {
-            const user = loginUser.value.trim().toUpperCase();
-            const pass = loginPass.value.trim();
-            if (user === 'DMS VEHICULE 2025' && pass === 'VEHICULE2025@') {
-                loginSection.style.display = 'none';
-                startSection.style.display = 'block';
-                loginError.style.display = 'none';
-            } else {
-                loginError.style.display = 'block';
-            }
-        });
+    // 🔹 Enregistrer le formulaire
+    saveFormBtn.addEventListener('click', () => {
+        alert('Formulaire enregistré localement (fonction à connecter à ton serveur pour Google Sheets).');
+    });
 
-        togglePassword.addEventListener('click', () => {
-            const type = loginPass.getAttribute('type') === 'password' ? 'text' : 'password';
-            loginPass.setAttribute('type', type);
-            togglePassword.classList.toggle('fa-eye');
-            togglePassword.classList.toggle('fa-eye-slash');
-        });
+    // 🔹 Export PDF
+    exportPdfBtn.addEventListener('click', () => {
+        window.print();
+    });
 
-        newEntryBtn.addEventListener('click', () => {
-            startSection.style.display = 'none';
-            formSection.style.display = 'block';
-            generatedId.value = generateID();
-            document.getElementById('mission').value = '';
-        });
-
-        existingBtn.addEventListener('click', async () => {
-            const entryId = existingId.value.trim();
-            if (entryId === '') {
-                alert("Veuillez entrer un ID d'enregistrement.");
-                return;
-            }
-
-            try {
-                const response = await fetch(`${SCRIPT_URL}?driverId=${encodeURIComponent(entryId)}`);
-                const data = await response.json();
-
-                if (data && data.status !== 'error') {
-                    startSection.style.display = 'none';
-                    formSection.style.display = 'block';
-                    generatedId.value = data["Id enregistrement"] || entryId;
-
-                    const fieldMap = {
-                        "Immatriculation": "vehicleReg",
-                        "Marque / Modèle": "vehicleModel",
-                        "Nom du conducteur": "driverName",
-                        "Matricule du conducteur": "driverMat",
-                        "Date départ": "dateStart",
-                        "Heure départ": "timeStart",
-                        "Date retour": "dateEnd",
-                        "Heure retour": "timeEnd",
-                        "Départ (site/adresse)": "origin",
-                        "Destination (site/adresse)": "destination",
-                        "Motif / Mission": "mission",
-                        "Kilométrage départ": "kmDepart",
-                        "Kilométrage retour": "kmRetour",
-                        "Km parcourus": "kmParcourus",
-                        "Péages / Frais": "toll",
-                        "Nombre passagers": "passengers",
-                        "État du véhicule après utilisation": "vehicleState",
-                        "Nom & Signature Conducteur": "signDriver",
-                        "Nom & Signature Responsable": "signResp"
-                    };
-
-                    for (const sheetKey in fieldMap) {
-                        const elementId = fieldMap[sheetKey];
-                        const element = document.getElementById(elementId);
-                        if (element && data[sheetKey] !== undefined && data[sheetKey] !== null) {
-                            if (element.tagName === 'SELECT') {
-                                for (let i = 0; i < element.options.length; i++) {
-                                    if (element.options[i].text === data[sheetKey] || element.options[i].value === data[sheetKey]) {
-                                        element.selectedIndex = i;
-                                        break;
-                                    }
-                                }
-                            } else {
-                                element.value = data[sheetKey];
-                            }
-                        }
-                    }
-                    calculateKm();
-                } else {
-                    alert("❌ Aucun enregistrement trouvé pour l'ID saisi.");
-                }
-            } catch (error) {
-                console.error('Erreur lors de la récupération des données:', error);
-                alert("❌ Une erreur s'est produite. Vérifiez votre connexion ou l'ID.");
-            }
-        });
-
-        backBtn.addEventListener('click', () => {
-            formSection.style.display = 'none';
-            startSection.style.display = 'block';
-        });
-
-        kmDepart.addEventListener('input', calculateKm);
-        kmRetour.addEventListener('input', calculateKm);
-
-        tollInput.addEventListener('input', function() {
-            let val = this.value.replace(/\s*CFA/gi, '').trim();
-            const numeric = val.replace(/,/g,'.').replace(/[^\d.]/g,'');
-            if (numeric !== '') {
-                this.value = numeric + ' CFA';
-            } else {
-                this.value = val;
-            }
-        });
-
-        vehicleModelSelect.addEventListener('change', () => {
-            vehicleRegInput.value = vehicleModelSelect.value;
-        });
-
-        saveFormBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            calculateKm();
-
-            const requiredFields = ['vehicleModel', 'driverName', 'dateStart', 'timeStart', 'kmDepart', 'mission'];
-            for (let fieldId of requiredFields) {
-                if (!document.getElementById(fieldId).value) {
-                    alert("Veuillez remplir tous les champs obligatoires (marqués d'un *).");
-                    return;
-                }
-            }
-
-            const id = generatedId.value || generateID();
-            const data = {
-                "Id enregistrement": id,
-                "Immatriculation": vehicleRegInput.value,
-                "Marque / Modèle": vehicleModelSelect.options[vehicleModelSelect.selectedIndex].text,
-                "Nom du conducteur": document.getElementById('driverName').value,
-                "Matricule du conducteur": document.getElementById('driverMat').value,
-                "Date départ": document.getElementById('dateStart').value,
-                "Heure départ": document.getElementById('timeStart').value,
-                "Date retour": document.getElementById('dateEnd').value,
-                "Heure retour": document.getElementById('timeEnd').value,
-                "Départ (site/adresse)": document.getElementById('origin').value,
-                "Destination (site/adresse)": document.getElementById('destination').value,
-                "Motif / Mission": document.getElementById('mission').value,
-                "Kilométrage départ": kmDepart.value,
-                "Kilométrage retour": kmRetour.value,
-                "Km parcourus": kmParcourus.value,
-                "Péages / Frais": tollInput.value,
-                "Nombre passagers": document.getElementById('passengers').value,
-                "État du véhicule après utilisation": document.getElementById('vehicleState').value,
-                "Nom & Signature Conducteur": document.getElementById('signDriver').value,
-                "Nom & Signature Responsable": document.getElementById('signResp').value
-            };
-            
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(data),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                if (result.status === 'ok') {
-                    generatedId.value = id;
-                    alert("✅ Enregistrement effectué (ID: " + id + ")");
-                } else {
-                    console.error('Erreur du serveur:', result.message);
-                    alert("❌ Erreur lors de l'enregistrement: " + result.message);
-                }
-
-            } catch (error) {
-                console.error('Erreur lors de l\'envoi des données:', error);
-                alert("❌ Une erreur s'est produite lors de l'enregistrement. Veuillez vérifier votre connexion.");
-            }
-        });
-
-        exportPdfBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            calculateKm();
-            const fields = [
-                {id:'generatedId', label:'ID Enregistrement'},
-                {id:'vehicleReg', label:'Immatriculation'},
-                {id:'vehicleModel', label:'Marque / Modèle'},
-                {id:'driverName', label:'Nom du conducteur'},
-                {id:'driverMat', label:'Matricule'},
-                {id:'dateStart', label:'Date départ'},
-                {id:'timeStart', label:'Heure départ'},
-                {id:'dateEnd', label:'Date retour'},
-                {id:'timeEnd', label:'Heure retour'},
-                {id:'origin', label:'Départ (site/adresse)'},
-                {id:'destination', label:'Destination (site/adresse)'},
-                {id:'mission', label:'Motif / Mission'},
-                {id:'kmDepart', label:'Kilométrage départ'},
-                {id:'kmRetour', label:'Kilométrage retour'},
-                {id:'kmParcourus', label:'Km parcourus'},
-                {id:'toll', label:'Péages / Frais'},
-                {id:'passengers', label:'Nombre passagers'},
-                {id:'vehicleState', label:"État du véhicule après utilisation"},
-                {id:'signDriver', label:'Nom & Signature Conducteur'},
-                {id:'signResp', label:'Nom & Signature Responsable'}
-            ];
-            let html = `<!doctype html><html><head><meta charset="utf-8"><title>Suivi Véhicule ${document.getElementById('generatedId').value || ''}</title>`;
-            html += `<style>
-                @page { size: A4; margin: 10mm; }
-                html,body{font-family: Arial, sans-serif; margin:10px; color:#111; font-size:12px}
-                h1{font-size:16px; margin-bottom:6px}
-                table{width:100%; border-collapse:collapse; margin-top:8px; font-size:12px}
-                td, th{padding:6px; border:1px solid #ddd; vertical-align:top}
-                .label{width:35%; font-weight:bold; background:#f4f4f4}
-                table, tr, td { page-break-inside: avoid; }
-            </style></head><body>`;
-            html += `<h1>Suivi Véhicule — DMS</h1><table>`;
-            fields.forEach(f => {
-                const el = document.getElementById(f.id);
-                let val = '';
-                if (el) {
-                    if (el.tagName === 'SELECT') {
-                        val = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value;
-                    } else if (el.type === 'file') {
-                        const files = el.files;
-                        if (files && files.length) {
-                            val = Array.from(files).map(fi => fi.name).join(', ');
-                        } else {
-                            val = '';
-                        }
-                    } else {
-                        val = el.value || '';
-                    }
-                }
-                val = String(val).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-                html += `<tr><td class="label">${f.label}</td><td>${val}</td></tr>`;
-            });
-            html += `</table></body></html>`;
-            const printWindow = window.open('', '_blank');
-            if (!printWindow) {
-                alert('Le navigateur a bloqué l’ouverture d’une nouvelle fenêtre. Autorisez les pop-ups pour ce site.');
-                return;
-            }
-            printWindow.document.open();
-            printWindow.document.write(html);
-            printWindow.document.close();
-            printWindow.focus();
-            printWindow.onload = function() { setTimeout(()=>printWindow.print(), 200); };
-        });
-    })();
+})();
 </script>
 </body>
 </html>
-
-
-
